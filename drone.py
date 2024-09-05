@@ -1,7 +1,10 @@
 import time
 import requests
+import logging
 from flask import Flask, request, jsonify, Response
 
+
+logging.basicConfig(level=logging.INFO, filemode="w", format='%(name)s - %(levelname)s - %(message)s')
 
 app = Flask(__name__)
 
@@ -21,11 +24,11 @@ class Drone:
         try:
             response = requests.post('BASE_URL/takeoff')
             if response.status_code == 200:
-                print("Запрос на взлет успешно отправлен.")
+                logging.info("Запрос на взлет успешно отправлен.")
             else:
-                print("Ошибка при отправке запроса на взлет:", response.status_code)
+                logging.info("Ошибка при отправке запроса на взлет:", response.status_code)
         except Exception as e:
-            print("Ошибка при подключении к серверу:", e)
+            logging.info("Ошибка при подключении к серверу:", e)
 
 
 app.run(debug=True, host='127.0.0.1', port=5001)
