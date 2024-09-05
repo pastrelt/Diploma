@@ -95,13 +95,13 @@ class CameraFactory:
     """
     @staticmethod
     def create_camera(camera_type):
-        if camera_type == 'camera1':
+        if camera_type == 'camera_1':
             return Camera1()
-        elif camera_type == 'camera2':
+        elif camera_type == 'camera_2':
             return Camera2()
-        elif camera_type == 'camera3':
+        elif camera_type == 'camera_3':
             return Camera3()
-        elif camera_type == 'camera4':
+        elif camera_type == 'camera_4':
             return Camera4()
         raise ValueError(f"Unknown camera type: {camera_type}")
 
@@ -148,12 +148,12 @@ def run_camera(camera):
 
 if __name__ == "__main__":
     cameras = [
-        CameraFactory.create_camera('camera1')
+        CameraFactory.create_camera('camera_1')
         # Резервный код. Реализуется при наличии 4-х камер.
-        # CameraFactory.create_camera('camera1'),
-        # CameraFactory.create_camera('camera2'),
-        # CameraFactory.create_camera('camera3'),
-        # CameraFactory.create_camera('camera4')
+        # CameraFactory.create_camera('camera_1'),
+        # CameraFactory.create_camera('camera_2'),
+        # CameraFactory.create_camera('camera_3'),
+        # CameraFactory.create_camera('camera_4')
     ]
 
     threads = []

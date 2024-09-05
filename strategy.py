@@ -176,3 +176,33 @@ class DroneContext:
         """
         self.__strategy.execute(self.__commands, token)
         self.__commands.clear()
+
+def drone_strategy_selection(drone_status):
+    """
+    Отдаем выбирая стратегию
+    :param drone_status:
+    :return:
+    """
+    print(drone_status)
+    # Создаем экземпляры
+    drone_controller = DronController()
+    context = DroneContext()
+    if drone_status == "Дрон на земле.":
+        context.set_strategy(PatrolMissionStrategy(n_patrols=3, secret_key=secret_key, mission="mission_2"))
+        # Передаем экземпляр класса
+        context.add_command(Takeoff(drone_controller))
+        context.add_command(MoveForward(drone_controller, 100))
+        context.add_command(MoveBack(drone_controller, 100))
+        context.add_command(Landing(drone_controller))
+        # Выполняем миссию разведки
+        context.execute(token=token)
+
+    elif drone_status == "Дрон в полете.":
+        # Новая стратегия (с поворотами) облета по квадрату
+        context.set_strategy(PatrolMissionStrategy(n_patrols=3, secret_key=secret_key, mission="mission_2"))
+        context.add_command(Takeoff(drone_controller))
+        for _ in range(4):
+            context.add_command(MoveForward(drone_controller, 50))
+            context.add_command(Turn(drone_controller, 90))
+        # Выполняем
+        context.execute(token=token)
