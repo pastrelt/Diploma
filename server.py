@@ -1,7 +1,5 @@
 import requests
 import logging
-
-import strategy
 from strategy import *
 from flask import Flask, request, jsonify, Response
 
