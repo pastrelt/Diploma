@@ -38,7 +38,8 @@ class AbstractCamera(ABC):
 
 class SimpleStationaryCamera(AbstractCamera):
     """
-    Класс описания конкретной камеры размещенной на дроне.
+    Класс описания работы конкретной простой стационарной камеры.
+    Паттерн позволяет наже в коде вставить описание любой другой модели стационарной камеры.
     """
     def start(self):
         cap = cv2.VideoCapture(self.camera_index)
@@ -64,7 +65,9 @@ class SimpleStationaryCamera(AbstractCamera):
         cv2.destroyAllWindows()
 
     def process_frame(self, frame):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Уменьшаем разрешение изображения в 2 раза
+        frame_resized = cv2.resize(frame, (frame.shape[1] // 2, frame.shape[0] // 2))
+        gray = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2GRAY)
         edges = cv2.Canny(gray, 100, 200)
         return edges
 

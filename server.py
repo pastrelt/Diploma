@@ -29,9 +29,9 @@ class Drone:
             response = requests.post(f'{BASE_URL}/receive_alert')
             if response.status_code == 200:
                 drone_status = response.json()['message']
-                logging.info(f"Получен статус состояния дрона: {response.json()}")
+                logging.info(f"Получен статус тостояния от дрона: {response.json()}")
                 # Передаем статус дрона для определения стратегии полетного задания
-                strategy.drone_strategy_selection(drone_status)
+                return strategy.drone_strategy_selection(drone_status, self._coordinates)
             else:
                 logging.info("Ошибка при отправке запроса:", response.status_code)
         except Exception as e:

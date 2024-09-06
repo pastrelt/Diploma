@@ -20,10 +20,11 @@ class Drone:
         Mетод передает статус дрона
         :return: status_drone
         """
+        logging.info("Получен запрос о состоянии дрона")
         if Drone.status_drone:
-            return jsonify({"message": "Дрон на земле."})
+            return jsonify({"message": "Я на земле."})
         else:
-            return jsonify({"message": "Дрон в полете."})
+            return jsonify({"message": "Я в воздухе."})
 
 
 

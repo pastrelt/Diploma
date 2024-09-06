@@ -15,13 +15,13 @@ class DronController:
         """
         Команда для взлета дрона.
         """
-        logging.info("Дрон взлетает...")
+        logging.info("Дрон взлетает на 50 метров")
 
-    def move_forward(self, distance: float):
-        logging.info(f"Дрон летит вперед на {distance} метров")
+    def move_forward(self, coordinates):
+        logging.info(f"Дрон летит по координатам {coordinates}")
 
-    def move_back(self, distance: float):
-        logging.info(f"Дрон летит назад на {distance} метров")
+    def move_back(self, coordinates):
+        logging.info(f"Дрон летит на базу")
 
     def turn(self, degree: float):
         logging.info(f"Поворачиваем на {degree} градусов")
@@ -52,22 +52,22 @@ class Takeoff(ICommand):
 
 # Движение вперед
 class MoveForward(ICommand):
-    def __init__(self, drone: DronController, distance: float):
+    def __init__(self, drone: DronController, coordinates):
         self.__drone = drone
-        self.__distance = distance
+        self.__coordinates = coordinates
 
     def execute(self):
-        self.__drone.move_forward(self.__distance)
+        self.__drone.move_forward(self.__coordinates)
 
 
 # Движение назад
 class MoveBack(ICommand):
-    def __init__(self, drone: DronController, distance: float):
+    def __init__(self, drone: DronController, coordinates):
         self.__drone = drone
-        self.__distance = distance
+        self.__coordinates = coordinates
 
     def execute(self):
-        self.__drone.move_back(self.__distance)
+        self.__drone.move_back(self.__coordinates)
 
 
 # Поворот
@@ -101,52 +101,22 @@ class IFlightStrategy(ABC):
         pass
 
 
-# Стратегия разведывательной миссии
-class ReconMissionStrategy(IFlightStrategy):
-    def __init__(self, secret_key, mission):
-        self._secret_key = secret_key
-        self._mission = mission
-
-    def execute(self, commands: list, token=None):
-        # Выполняет разведывательную миссию, выполняя все команды в списке
-        logging.info(f"Начало выполнения разведывательной миссии")
-        # '''
-        #  Учитывая, что декораторы в Python применяются к функциям во время определения,
-        #     а не во время вызова, поэтому нельзя использовать self напрямую в декораторе.
-        #     Вместо этого можно создать обертку вокруг метода execute, чтобы передать self.secret_key
-        #     в декоратор.
-        # '''
-        # # Обертываем метод execute в декоратор
-        # decorated_execute = SafetyCheck(self._secret_key, self._mission)(self._execute)
-        # decorated_execute(commands=commands, token=token)
-        logging.info(f"Конец миссии")
-
-    def _execute(self, commands, token):
-        for command in commands:
-            command.execute()
+# Стратегия вылета с базовой точки
+class BaseDepartureStrategy(IFlightStrategy):
+    def execute(self, commands: list):
+        logging.info(f'Выбрана стратеия: "Взлет с базы"')
+        # for command in commands:
+        #     command.execute()
+        return commands
 
 
-# Стратегия патрульной миссии
-class PatrolMissionStrategy(IFlightStrategy):
-    def __init__(self, n_patrols: int, secret_key, mission):
-        self._n_patrols = n_patrols# количество циклов патрулирования
-        self._secret_key = secret_key
-        self._mission = mission
-
-    def execute(self, commands: list, token=None):
-        # Выполняет патрульную миссию, повторяя все команды в списке заданное количество раз
-        logging.info(f"Начало выполнения миссии патрулирования")
-
-        # # Обертываем метод execute в декоратор
-        # decorated_execute = SafetyCheck(self._secret_key, self._mission)(self._execute)
-        # decorated_execute(commands=commands, token=token)
-        logging.info(f"Конец миссии")
-
-    def _execute(self, commands, token):
-        for i in range(self._n_patrols):
-            for command in commands:
-                command.execute()
-            logging.info(f"Облет №{i+1} завершен.")
+# Стратегия изменения маршрута.
+class FlightChangeStrategy(IFlightStrategy):
+    def execute(self, commands: list):
+        logging.info(f'Выбрана стратеия: "Изменение маршрута"')
+        # for command in commands:
+        #     command.execute()
+        return commands
 
 
 # Контекст для управления стратегиями полета дрона
@@ -169,40 +139,41 @@ class DroneContext:
         """
         self.__commands.append(command)
 
-    def execute(self, token=None):
+    def execute(self):
         """
         Выполняет все команды, используя текущую стратегию полета.
         После выполнения команды очищает список.
         """
-        self.__strategy.execute(self.__commands, token)
+        self.__strategy.execute(self.__commands)
         self.__commands.clear()
 
-def drone_strategy_selection(drone_status):
+
+def drone_strategy_selection(drone_status, coordinates):
     """
-    Отдаем выбирая стратегию
-    :param drone_status:
+    Метод выбира стратегии
+    :param drone_status, coordinates:
     :return:
     """
-    print(drone_status)
     # Создаем экземпляры
     drone_controller = DronController()
     context = DroneContext()
-    if drone_status == "Дрон на земле.":
-        context.set_strategy(PatrolMissionStrategy(n_patrols=3, secret_key=secret_key, mission="mission_2"))
-        # Передаем экземпляр класса
-        context.add_command(Takeoff(drone_controller))
-        context.add_command(MoveForward(drone_controller, 100))
-        context.add_command(MoveBack(drone_controller, 100))
-        context.add_command(Landing(drone_controller))
-        # Выполняем миссию разведки
-        context.execute(token=token)
+    if drone_status == "Я на земле.":
+        # Стратегия вылета с базовой точки
+        context.set_strategy(BaseDepartureStrategy())
 
-    elif drone_status == "Дрон в полете.":
-        # Новая стратегия (с поворотами) облета по квадрату
-        context.set_strategy(PatrolMissionStrategy(n_patrols=3, secret_key=secret_key, mission="mission_2"))
+        # Формируем список команд
         context.add_command(Takeoff(drone_controller))
-        for _ in range(4):
-            context.add_command(MoveForward(drone_controller, 50))
-            context.add_command(Turn(drone_controller, 90))
-        # Выполняем
-        context.execute(token=token)
+        context.add_command(MoveForward(drone_controller, coordinates))
+
+        # Выполняем миссию
+        context.execute()
+
+    elif drone_status == "Я в воздухе.":
+        # Стратегия изменения маршрута.
+        context.set_strategy(FlightChangeStrategy())
+
+        # Формируем список команд
+        context.add_command(MoveForward(drone_controller, coordinates))
+
+        # Выполняем миссию
+        context.execute()
