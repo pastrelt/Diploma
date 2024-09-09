@@ -4,6 +4,8 @@ import cv2
 import logging
 import threading
 import requests  # Импортируем библиотеку для HTTP-запросов
+from pyinstrument import Profiler
+
 
 
 logging.basicConfig(level=logging.INFO, filemode="w", format='%(name)s - %(levelname)s - %(message)s')
@@ -42,6 +44,8 @@ class SimpleStationaryCamera(AbstractCamera):
     Паттерн позволяет наже в коде вставить описание любой другой модели стационарной камеры.
     """
     def start(self):
+        profile = Profiler()
+        profile.start()
         cap = cv2.VideoCapture(self.camera_index)
         while not self.stop_flag:
             ret, frame = cap.read()
@@ -63,6 +67,8 @@ class SimpleStationaryCamera(AbstractCamera):
 
         cap.release()
         cv2.destroyAllWindows()
+        profile.stop()
+        profile.print()
 
     def process_frame(self, frame):
         # Уменьшаем разрешение изображения в 2 раза

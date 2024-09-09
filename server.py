@@ -22,19 +22,54 @@ class Drone:
     def __init__(self, coordinates):
         self._coordinates = coordinates
 
-    def receive_alert(self):
+    def drone_status(self):
         try:
-            response = requests.post(f'{BASE_URL}/receive_alert')
+            response = requests.get(f'{BASE_URL}/drone_status')
             if response.status_code == 200:
-                drone_status = response.json()['message']
                 logging.info(f"Получен статус тостояния от дрона: {response.json()}")
-                # Передаем статус дрона для определения стратегии полетного задания
-                return strategy.drone_strategy_selection(drone_status, self._coordinates)
+                return  response.json()['message']
             else:
                 logging.info("Ошибка при отправке запроса:", response.status_code)
         except Exception as e:
             logging.info("Ошибка при подключении к серверу:", e)
 
+
+
+
+def drone_control(coordinates):
+    # Инициализируем дрона
+    drone = Drone(coordinates)
+    drone_status = drone.drone_status()
+    # # Передаем статус дрона для определения стратегии полетного задания
+    # drone_strategy = strategy.drone_strategy_selection(drone_status, coordinates)
+    #
+    # def drone_strategy_selection(drone_status, coordinates):
+    """
+    Метод выбира стратегии
+    :param drone_status, coordinates:
+    :return:
+    """
+    # Создаем экземпляры
+    drone_controller = DronController()
+    context = DroneContext()
+    if drone_status == "Я на земле.":
+        context.set_strategy(BaseDepartureStrategy())
+        # Формируем список команд
+        context.add_command(Takeoff(drone_controller))
+        context.add_command(MoveForward(drone_controller, coordinates))
+
+        # Возвращаем решение о выбранной миссии и список команд для дрона
+        context.execute()
+
+    elif drone_status == "Я в воздухе.":
+        logging.info(f'Выбрана стратеия: "Изменение маршрута"')
+        context.set_strategy(FlightChangeStrategy())
+
+        # Формируем список команд
+        context.add_command(MoveForward(drone_controller, coordinates))
+
+        # Возвращаем решение о выбранной миссии и список команд для дрона
+        return context.execute()
 
 class Cameras:
     """
@@ -63,9 +98,8 @@ class Cameras:
 
         # Проверка, превышает ли счетчик 100
         if camera_request_count[str(camera_index)] > 100:
-            # Инициализируем дрона
-            drone = Drone(coordinates)
-            drone.receive_alert()
+            # Инициализируем управление дроном
+            drone = drone_control(coordinates)
             # Сброс счетчика после отправки команды дрону
             camera_request_count[str(camera_index)] = 0
 

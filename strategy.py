@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
+import requests
 import logging
 
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, filemode="w")
+BASE_URL = 'http://localhost:5001'
 
-# Реализуем патерн Абстрактная Фабрика
+
+# Реализуем паттерн Абстрактная Фабрика
 # Конкретная реализация управления дроном
 class DronController:
     """
@@ -13,23 +16,69 @@ class DronController:
     """
     def takeoff(self):
         """
-        Команда для взлета дрона.
+        Передаем команду дрону на взлет.
         """
-        logging.info("Дрон взлетает на 50 метров")
+        altitude = {'altitude': 50.0}
+        try:
+            response = requests.post(f'{BASE_URL}/takeoff', json=altitude)
+            response.raise_for_status()  # Проверка на ошибки HTTP
+            logging.info(f"Получен ответ дрона на команду - взлет: {response.json()}")
+            return response.json()['message']
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Ошибка при отправке запроса: {e}")
+            return None  # Возврат значения по умолчанию
+
 
     def move_forward(self, coordinates):
-        logging.info(f"Дрон летит по координатам {coordinates}")
+        """
+        Передаем дрону команду полета по заданным координатам.
+        """
+        try:
+            response = requests.post(f'{BASE_URL}/move_forward', json=coordinates)
+            response.raise_for_status()  # Проверка на ошибки HTTP
+            logging.info(f"Получен ответ дрона на команду - взлет: {response.json()}")
+            return response.json()['message']
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Ошибка при отправке запроса: {e}")
+            return None
 
     def move_back(self, coordinates):
-        logging.info(f"Дрон летит на базу")
+        """
+        Передаем дрону команду полета по заданным координатам (движение задом).
+        """
+        try:
+            response = requests.post(f'{BASE_URL}/move_back', json=coordinates)
+            response.raise_for_status()  # Проверка на ошибки HTTP
+            logging.info(f"Получен ответ дрона на команду - взлет: {response.json()}")
+            return response.json()['message']
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Ошибка при отправке запроса: {e}")
+            return None
 
     def turn(self, degree: float):
-        logging.info(f"Поворачиваем на {degree} градусов")
-
+        """
+        Передаем дрону команду полета на поворот.
+        """
+        try:
+            response = requests.post(f'{BASE_URL}/turn', json=degree)
+            response.raise_for_status()  # Проверка на ошибки HTTP
+            logging.info(f"Получен ответ дрона на команду - взлет: {response.json()}")
+            return response.json()['message']
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Ошибка при отправке запроса: {e}")
+            return None
     def landing(self):
         """
-        Команда посадки дрона.
+        Передаем дрону команду на посадку.
         """
+        try:
+            response = requests.get(f'{BASE_URL}/landing')
+            response.raise_for_status()  # Проверка на ошибки HTTP
+            logging.info(f"Получен ответ дрона на команду - посадка: {response.json()}")
+            return response.json()['message']
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Ошибка при отправке запроса: {e}")
+            return None  # Возврат зна
         logging.info("Дрон приземлился")
 
 
@@ -105,8 +154,8 @@ class IFlightStrategy(ABC):
 class BaseDepartureStrategy(IFlightStrategy):
     def execute(self, commands: list):
         logging.info(f'Выбрана стратеия: "Взлет с базы"')
-        # for command in commands:
-        #     command.execute()
+        for command in commands:
+            command.execute()
         return commands
 
 
@@ -146,34 +195,3 @@ class DroneContext:
         """
         self.__strategy.execute(self.__commands)
         self.__commands.clear()
-
-
-def drone_strategy_selection(drone_status, coordinates):
-    """
-    Метод выбира стратегии
-    :param drone_status, coordinates:
-    :return:
-    """
-    # Создаем экземпляры
-    drone_controller = DronController()
-    context = DroneContext()
-    if drone_status == "Я на земле.":
-        # Стратегия вылета с базовой точки
-        context.set_strategy(BaseDepartureStrategy())
-
-        # Формируем список команд
-        context.add_command(Takeoff(drone_controller))
-        context.add_command(MoveForward(drone_controller, coordinates))
-
-        # Выполняем миссию
-        context.execute()
-
-    elif drone_status == "Я в воздухе.":
-        # Стратегия изменения маршрута.
-        context.set_strategy(FlightChangeStrategy())
-
-        # Формируем список команд
-        context.add_command(MoveForward(drone_controller, coordinates))
-
-        # Выполняем миссию
-        context.execute()
