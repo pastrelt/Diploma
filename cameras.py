@@ -44,6 +44,9 @@ class SimpleStationaryCamera(AbstractCamera):
     Паттерн позволяет наже в коде вставить описание любой другой модели стационарной камеры.
     """
     def start(self):
+        """
+        Метод запускает процесс захвата видео с камеры и обработки каждого кадра.
+        """
         profile = Profiler()
         profile.start()
         cap = cv2.VideoCapture(self.camera_index)
@@ -71,6 +74,9 @@ class SimpleStationaryCamera(AbstractCamera):
         profile.print()
 
     def process_frame(self, frame):
+        """
+        Метод обрабатывает один кадр, чтобы подготовить его для дальнейшего анализа.
+        """
         # Уменьшаем разрешение изображения в 2 раза
         frame_resized = cv2.resize(frame, (frame.shape[1] // 2, frame.shape[0] // 2))
         gray = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2GRAY)
@@ -78,6 +84,9 @@ class SimpleStationaryCamera(AbstractCamera):
         return edges
 
     def detect_obstacle(self, edges):
+        """
+        Метод анализирует обработанный кадр для обнаружения объектов.
+        """
         if edges.sum() > 100000:
             logging.info(f'Камера {self.camera_index}: Объект обнаружен')
             self.send_alert_to_server()
@@ -85,7 +94,10 @@ class SimpleStationaryCamera(AbstractCamera):
             logging.info(f'Камера {self.camera_index}: Объект не обнаружен')
 
     def send_alert_to_server(self):
-        # Отправляем POST-запрос на сервер с координатами камеры
+        """
+        POST-запрос на сервер с координатами камеры
+        :param data: Список координат полета.
+        """
         data = {
             'camera_index': self.camera_index,
             'coordinates': self.camera_coordinates

@@ -50,7 +50,7 @@ class Drone:
         command = request.get_json()
         if command:
             logging.info("Получена команда двигаться вперед.")
-            return jsonify({'message': f'Двигаюсь к координатам: {command}'}), 200
+            return jsonify({'message': f'Двигаюсь к координатам, веду съемку: {command}'}), 200
         else:
             logging.error('Некорректные данные: %s', command)
             return jsonify({'error': 'Некорректные данные'}), 400

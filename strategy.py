@@ -3,16 +3,14 @@ import requests
 import logging
 
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO, filemode="w")
+logging.basicConfig(level=logging.INFO, filemode="w")# настройка логирования
 BASE_URL = 'http://localhost:5001'
 
 
-# Реализуем паттерн Абстрактная Фабрика
-# Конкретная реализация управления дроном
 class DronController:
     """
     Класс управления дроном. Содержит методы для взлета, движения вперед и поворота.
+    Конкретная реализация управления дроном
     """
     def takeoff(self):
         """
@@ -82,16 +80,20 @@ class DronController:
         logging.info("Дрон приземлился")
 
 
-# Реализация патерна Сомманда
-# разделяем наши команды от логики управления нашими миссиями
 class ICommand(ABC):# интерфейс
+    """
+    Реализация патерна Сомманда,
+    разделяем наши команды от логики управления нашими миссиями.
+    """
     @abstractmethod
     def execute(self):
         pass
 
 
-# Взлет
 class Takeoff(ICommand):
+    """
+    Взлет
+    """
     def __init__(self, drone: DronController):
         self.__drone = drone
 
@@ -99,8 +101,10 @@ class Takeoff(ICommand):
         self.__drone.takeoff()
 
 
-# Движение вперед
 class MoveForward(ICommand):
+    """
+    Движение вперед
+    """
     def __init__(self, drone: DronController, coordinates):
         self.__drone = drone
         self.__coordinates = coordinates
@@ -109,8 +113,10 @@ class MoveForward(ICommand):
         self.__drone.move_forward(self.__coordinates)
 
 
-# Движение назад
 class MoveBack(ICommand):
+    """
+    Движение назад
+    """
     def __init__(self, drone: DronController, coordinates):
         self.__drone = drone
         self.__coordinates = coordinates
@@ -119,8 +125,10 @@ class MoveBack(ICommand):
         self.__drone.move_back(self.__coordinates)
 
 
-# Поворот
 class Turn(ICommand):
+    """
+    Поворот
+    """
     def __init__(self, drone: DronController, degree: float):
         self.__drone = drone
         self.__degree = degree
@@ -129,8 +137,10 @@ class Turn(ICommand):
         self.__drone.turn(self.__degree)
 
 
-# Посадка
 class Landing(ICommand):
+    """
+    Посадка
+    """
     def __init__(self, drone: DronController):
         self.__drone = drone
 
@@ -138,9 +148,12 @@ class Landing(ICommand):
         self.__drone.landing()
 
 
-# Реализуем патерн Стратегия
-# Интерфейс стратегии полета, определяет метод execute
+
 class IFlightStrategy(ABC):
+    """
+    Реализуем патерн Стратегия
+    Интерфейс стратегии полета, определяет метод execute
+    """
     @abstractmethod
     def execute(self, commands: list):
         """
@@ -150,8 +163,11 @@ class IFlightStrategy(ABC):
         pass
 
 
-# Стратегия вылета с базовой точки
+
 class BaseDepartureStrategy(IFlightStrategy):
+    """
+    Стратегия вылета с базовой точки
+    """
     def execute(self, commands: list):
         logging.info(f'Выбрана стратеия: "Взлет с базы"')
         for command in commands:
@@ -159,17 +175,21 @@ class BaseDepartureStrategy(IFlightStrategy):
         return commands
 
 
-# Стратегия изменения маршрута.
 class FlightChangeStrategy(IFlightStrategy):
+    """
+    Стратегия изменения маршрута.
+    """
     def execute(self, commands: list):
         logging.info(f'Выбрана стратеия: "Изменение маршрута"')
-        # for command in commands:
-        #     command.execute()
+        for command in commands:
+            command.execute()
         return commands
 
 
-# Контекст для управления стратегиями полета дрона
 class DroneContext:
+    """
+    Класс управления стратегиями полета дрона
+    """
     def __init__(self, strategy: IFlightStrategy = None):
         self.__strategy = strategy  # Текущая стратегия полета
         self.__commands = []  # Список команд

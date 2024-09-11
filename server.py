@@ -19,6 +19,11 @@ camera_request_count = {
 
 
 class Drone:
+    """
+    Класс взаимодействия с дроном
+    Класс содержит метод получения статуса дрона
+    Для удобства остальные методы рабрты с дроном вынесены в отдельный файл - strategy.py
+    """
     def __init__(self, coordinates):
         self._coordinates = coordinates
 
@@ -34,21 +39,13 @@ class Drone:
             logging.info("Ошибка при подключении к серверу:", e)
 
 
-
-
 def drone_control(coordinates):
-    # Инициализируем дрона
+    """
+    Метод инициализируем дрона
+    """
     drone = Drone(coordinates)
     drone_status = drone.drone_status()
-    # # Передаем статус дрона для определения стратегии полетного задания
-    # drone_strategy = strategy.drone_strategy_selection(drone_status, coordinates)
-    #
-    # def drone_strategy_selection(drone_status, coordinates):
-    """
-    Метод выбира стратегии
-    :param drone_status, coordinates:
-    :return:
-    """
+
     # Создаем экземпляры
     drone_controller = DronController()
     context = DroneContext()
@@ -62,14 +59,13 @@ def drone_control(coordinates):
         context.execute()
 
     elif drone_status == "Я в воздухе.":
-        logging.info(f'Выбрана стратеия: "Изменение маршрута"')
         context.set_strategy(FlightChangeStrategy())
-
         # Формируем список команд
         context.add_command(MoveForward(drone_controller, coordinates))
 
         # Возвращаем решение о выбранной миссии и список команд для дрона
-        return context.execute()
+        context.execute()
+
 
 class Cameras:
     """
@@ -104,5 +100,6 @@ class Cameras:
             camera_request_count[str(camera_index)] = 0
 
         return jsonify({'message': 'Уведомление получено'}), 200
+
 
 app.run(debug=True, host='127.0.0.1', port=5000)

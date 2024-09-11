@@ -4,7 +4,6 @@ from cameras import *
 
 subprocess.Popen(['python', 'server.py'])
 subprocess.Popen(['python', 'drone.py'])
-
 cameras = [
     CameraFactory.create_camera('camera_1')
     # Резервный код. Реализуется при наличии 4-х камер.
@@ -23,4 +22,4 @@ for camera in cameras:
 
 for thread in threads:
     thread.join()  # Ожидание завершения всех потоков
-print("Получилось!")
+# print("Получилось!")
